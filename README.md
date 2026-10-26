@@ -21,7 +21,7 @@ Dibuat dari salinan project portofolio Azriel (Astro 7 · Tailwind CSS 4 · Supa
 | ✅ | Panel admin: semua halaman + mode uji lokal |
 | ✅ | Akun GitHub, Supabase & Vercel milik Irsyad, website sudah online |
 | ⏳ | Isi asli (foto, CV, IPK, fakultas, project, studi kasus, publikasi, pengalaman, sertifikat) — diisi Irsyad lewat `/admin` |
-| ⏳ | Versi PDF (`/portfolio-pdf`) belum memuat Studi kasus & Publikasi |
+| ✅ | Versi PDF (`/portfolio-pdf`) memuat Studi kasus & Publikasi, gaya burgundy |
 
 > **Data di `src/data/default.ts` masih CONTOH** (IPK "3.xx", mata kuliah, skripsi, project, studi kasus, publikasi, pengalaman, skill). Jangan dipublikasikan sebelum diganti data asli.
 
