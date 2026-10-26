@@ -1,0 +1,10 @@
+---
+/* Teks dua bahasa. Pakai `k` untuk teks antarmuka (src/lib/i18n.ts), atau `en` + `id` untuk isi dari admin.
+   Bila versi Indonesia kosong/sama, hanya satu teks yang dirender (dipakai di kedua mode). */
+import { UI, type Key } from "../lib/i18n";
+interface Props { k?: Key; en?: string; id?: string }
+const { k } = Astro.props;
+const en = k ? UI.en[k] : Astro.props.en ?? "";
+const id = (k ? UI.id[k] : Astro.props.id ?? "").trim();
+---
+{id && id !== en ? <><span class="l-en">{en}</span><span class="l-id" lang="id">{id}</span></> : en}

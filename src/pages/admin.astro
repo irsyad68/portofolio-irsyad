@@ -1,0 +1,112 @@
+---
+/* Panel admin. Halaman statis; semua data dimuat di browser setelah login (Supabase Auth).
+   Keamanan TIDAK bergantung pada halaman ini — setiap penulisan dicek Row Level Security di database. */
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import "../styles/admin.css";
+
+export const prerender = true;
+const nav: [string, string, string, string?][] = [
+  ["dashboard", "dashboard", "Dashboard", "nTodo"],
+  ["stats", "chart", "Statistik"],
+  ["messages", "inbox", "Pesan", "nMsg"],
+  ["profile", "user", "Profil & Kontak"],
+  ["projects", "folder", "Projects", "nProj"],
+  ["cases", "flask", "Studi kasus", "nCase"],
+  ["pubs", "fileText", "Publikasi", "nPub"],
+  ["experience", "briefcase", "Experience", "nExp"],
+  ["skills", "code", "Skills", "nSkill"],
+  ["certificates", "award", "Certificates", "nCert"],
+  ["activity", "activity", "Aktivitas"],
+  ["account", "lock", "Akun & keamanan"],
+];
+/* navigasi bawah di HP: 4 menu utama + "Lainnya" */
+const bottom: [string, string, string][] = [["dashboard", "dashboard", "Dashboard"], ["projects", "folder", "Projects"], ["experience", "briefcase", "Experience"], ["profile", "user", "Profil"]];
+const more: [string, string, string][] = [["stats", "chart", "Statistik pengunjung"], ["messages", "inbox", "Pesan masuk"], ["cases", "flask", "Studi kasus"], ["pubs", "fileText", "Publikasi"], ["skills", "code", "Skills"], ["certificates", "award", "Certificates"], ["activity", "activity", "Aktivitas"], ["account", "lock", "Akun & keamanan"]];
+---
+<Base title="Admin — Portfolio CMS" noindex lang="id">
+  <div class="mode-badge" id="modeBadge" hidden>MODE UJI LOKAL · tidak tersimpan ke database</div>
+
+  <!-- ===== LOGIN ===== -->
+  <section id="login">
+    <div class="login-art">
+      <div class="grid-bg"></div>
+      <div class="login-brand"><span class="mark mark-light">AD</span>Portfolio CMS</div>
+      <div><h2>Kelola<br />portofolio Anda.</h2><p>Profil & role, project beserta dokumentasi, pengalaman dengan foto bukti, skill berlogo, sertifikat, dan CV. Perubahan tampil di website dalam ±1 menit.</p></div>
+      <small class="login-foot">Hanya untuk administrator</small>
+    </div>
+    <div class="login-form">
+      <button class="btn icon theme-btn login-theme" data-theme-toggle aria-label="Ganti tema"><Icon name="sun" class="i-sun" /><Icon name="moon" class="i-moon" /></button>
+      <form id="loginForm" novalidate>
+        <h1>Masuk</h1>
+        <p class="sub" id="loginSub">Gunakan akun admin Supabase Anda.</p>
+        <div class="field" id="fEmail"><label for="em">Email</label><input id="em" type="email" autocomplete="username" placeholder="nama@email.com" aria-describedby="emErr" /><div class="err" id="emErr">Masukkan email yang valid.</div></div>
+        <div class="field" id="fPw"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" placeholder="••••••••" aria-describedby="pwErr" /><div class="err" id="pwErr">Password wajib diisi.</div></div>
+        <p class="err login-err" id="loginErr" role="alert"></p>
+        <button class="btn dark btn-block" id="loginBtn">Masuk</button>
+        <p class="help center"><a href="/" class="underline">← Kembali ke website</a></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== APP ===== -->
+  <div id="app" hidden>
+    <aside class="side" aria-label="Menu admin">
+      <div class="brand"><span class="mark">AD</span>Portfolio CMS</div>
+      {nav.map(([v, ic, label, n], i) => (
+        <>
+          {i === 3 && <div class="grp">Konten</div>}
+          {i === 8 && <div class="grp">Akun</div>}
+          <button class="nav-i" data-v={v}><Icon name={ic} />{label}{n && <span class={`n ${v === "dashboard" || v === "messages" ? "warn" : ""}`} id={n}></span>}</button>
+        </>
+      ))}
+      <div class="me"><span class="av" id="meInit">AD</span><div class="min-w-0"><b>Admin</b><small id="meEmail" class="block truncate"></small></div><button class="btn icon" id="logout" aria-label="Keluar"><Icon name="logout" size={16} /></button></div>
+    </aside>
+
+    <main>
+      <div class="top">
+        <div><div class="crumb" id="crumb"></div><h1 id="viewTitle"></h1></div>
+        <div class="top-actions">
+          <button class="btn icon theme-btn" data-theme-toggle aria-label="Ganti tema"><Icon name="sun" class="i-sun" /><Icon name="moon" class="i-moon" /></button>
+          <a class="btn" href="/" target="_blank" rel="noopener"><Icon name="external" size={16} />Lihat website</a>
+          <button class="btn dark" id="addBtn"><Icon name="plus" size={16} /><span id="addLabel">Tambah</span></button>
+        </div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div id="viewRoot"><div class="loading"><span class="spin"></span>Memuat data…</div></div>
+    </main>
+  </div>
+
+  <!-- ===== NAVIGASI BAWAH (HP) ===== -->
+  <nav class="bnav" id="bnav" aria-label="Menu admin" hidden>
+    {bottom.map(([v, ic, label]) => <button class="bn" data-v={v}><span class="bn-ic"><Icon name={ic} size={20} />{v === "dashboard" && <b class="bn-dot" id="nTodoM" hidden></b>}</span><span>{label}</span></button>)}
+    <button class="bn" id="moreBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="sheet"><span class="bn-ic"><Icon name="menu" size={20} /><b class="bn-dot" id="nMsgM" hidden></b></span><span>Lainnya</span></button>
+  </nav>
+  <div class="sheet-ov" id="sheetOv"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Menu lainnya">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-user"><span class="av" id="meInitM">AD</span><div class="min-w-0"><b>Admin</b><small id="meEmailM" class="block truncate"></small></div></div>
+    <div class="sheet-list">
+      {more.map(([v, ic, label]) => <button class="sheet-i" data-v={v}><Icon name={ic} />{label}{v === "messages" && <span class="n warn" id="nMsgS" hidden></span>}<Icon name="chevronRight" size={16} class="sheet-go" /></button>)}
+      <a class="sheet-i" href="/" target="_blank" rel="noopener"><Icon name="external" />Lihat website<Icon name="chevronRight" size={16} class="sheet-go" /></a>
+      <button class="sheet-i" data-theme-toggle><Icon name="moon" />Ganti tema (terang / gelap)</button>
+      <button class="sheet-i danger" id="logoutM"><Icon name="logout" />Keluar</button>
+    </div>
+  </div>
+
+  <!-- ===== DRAWER (form dinamis) ===== -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <div class="d-h"><h2 id="dTitle">Tambah</h2><button class="btn icon" id="dClose" aria-label="Tutup"><Icon name="x" size={16} /></button></div>
+    <form class="d-b" id="dForm" novalidate></form>
+    <div class="d-f"><button class="btn" id="dCancel" type="button">Batal</button><button class="btn dark" form="dForm" id="dSave"><Icon name="check" size={16} />Simpan</button></div>
+  </aside>
+
+  <div class="confirm" id="confirm" role="alertdialog" aria-modal="true" aria-labelledby="cTitle" aria-describedby="cText">
+    <div class="confirm-box"><h3 id="cTitle">Hapus item?</h3><p id="cText"></p>
+    <div class="acts"><button class="btn" id="cNo">Batal</button><button class="btn danger-solid" id="cYes">Hapus</button></div></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>import "../scripts/admin";</script>
+</Base>

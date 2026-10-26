@@ -1,0 +1,174 @@
+---
+/* Versi PDF portofolio: 16:9 per halaman, dari data yang sama dengan website (bahasa Inggris).
+   Disimpan lewat dialog cetak browser → "Save as PDF". Selalu tema terang, aksen burgundy.
+   Studi kasus & Publikasi hanya muncul bila ada isinya; nomor bagian menyesuaikan otomatis. */
+import "../styles/pdf.css";
+import Icon from "../components/Icon.astro";
+import { getContent } from "../lib/content";
+import { safeSrc, safeUrl, prettyUrl, initials, photosOf, logoHTML } from "../lib/format";
+
+export const prerender = false;
+const { data: D } = await getContent();
+const P = D.profile, E = P.education;
+const chunk = <T,>(a: T[], n: number): T[][] => (a.length ? Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n)) : []);
+
+type Page = { section: string; kind: string; dark?: boolean; idx?: string; title?: string; part?: number; total?: number; items?: any[] };
+/* daftar isi: hanya bagian yang punya isi, nomor berurutan (01, 02, …) */
+const ps = D.projects.filter(p => p.pub !== false);
+const toc = ["About me", "Technical skills", "Experience", "Projects & research", ...(D.cases.length ? ["Case studies"] : []), ...(D.pubs.length ? ["Publications"] : []), "Certificates", "Contact"];
+const no = (t: string) => String(toc.indexOf(t) + 1).padStart(2, "0");
+const pages: Page[] = [{ section: "Cover", kind: "cover" }, { section: "About me", kind: "about", idx: no("About me"), title: "About me" }, { section: "Technical skills", kind: "skills", idx: no("Technical skills"), title: "Technical skills" }];
+for (const [type, title] of [["Work", "Work experience"], ["Organization", "Organization & volunteer"]] as const) {
+  const g = chunk(D.experience.filter(x => x.type === type), 4);
+  g.forEach((items, i) => pages.push({ section: title, kind: "xp", idx: no("Experience"), title, part: i + 1, total: g.length, items }));
+}
+const pg = chunk(ps, 4);
+pg.forEach((items, i) => pages.push({ section: "Projects & research", kind: "proj", idx: no("Projects & research"), title: "Projects & research", part: i + 1, total: pg.length, items }));
+const csg = chunk(D.cases, 2);   // dua studi kasus per halaman (teks tiap langkah dibatasi 6 baris)
+csg.forEach((items, i) => pages.push({ section: "Case studies", kind: "case", idx: no("Case studies"), title: "Case studies", part: i + 1, total: csg.length, items }));
+const pbg = chunk(D.pubs, 6);
+pbg.forEach((items, i) => pages.push({ section: "Publications", kind: "pubs", idx: no("Publications"), title: "Publications", part: i + 1, total: pbg.length, items }));
+const cg = chunk(D.certs, 6);
+cg.forEach((items, i) => pages.push({ section: "Certificates", kind: "certs", idx: no("Certificates"), title: "Certificates", part: i + 1, total: cg.length, items }));
+pages.push({ section: "Contact", kind: "contact", dark: true });
+
+const linkedin = safeUrl(P.linkedin), github = safeUrl(P.github);
+const skills = D.skills.filter(s => s.items.length);
+const eduRows = [["Faculty", E.faculty], ["Focus", E.focus], ["Courses", E.courses], ["Thesis", E.thesis]].filter(r => r[1]);
+---
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>{P.name} — Portfolio (PDF)</title>
+  {safeSrc(P.logo) ? <link rel="icon" href={safeSrc(P.logo)} /> : <link rel="icon" type="image/svg+xml" href="/favicon.svg" />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="toolbar">
+    <div class="l">
+      <a class="tb-btn icon" href="/" aria-label="Back to website"><Icon name="arrowLeft" /></a>
+      <div><b>Portfolio — versi PDF</b><small>{pages.length} halaman · 16:9 landscape</small></div>
+    </div>
+    <button class="tb-btn dark" id="printBtn"><Icon name="printer" size={16} />Simpan sebagai PDF</button>
+  </div>
+  <p class="tips">Pada jendela cetak pilih <b>Tujuan: Simpan sebagai PDF</b>, lalu di <b>Setelan lainnya</b> matikan <b>Header dan footer</b> dan aktifkan <b>Grafik latar belakang</b>. Ukuran halaman sudah otomatis 16:9.</p>
+
+  <div class="pages">
+    {pages.map((pg, n) => (
+      <section class={`page ${pg.dark ? "dark" : ""}`} aria-label={`Halaman ${n + 1}: ${pg.section}`}>
+        {pg.title && <div class="ph-head"><span class="idx">{pg.idx}</span><h2>{pg.title}</h2>{(pg.total ?? 1) > 1 && <span class="cont">{pg.part}/{pg.total}</span>}<span class="rule"></span></div>}
+
+        {pg.kind === "cover" && (
+          <div class="cover"><div>
+            <div class="label">Engineering Portfolio — {new Date().getFullYear()}</div>
+            <h1>{P.first}<span>{P.last}</span></h1>
+            <div class="headline">{P.headline || P.roles.join(" | ")}</div>
+            <div class="meta">
+              {P.location && <div><Icon name="mapPin" size={16} />{P.location}</div>}
+              {P.email && <div><Icon name="mail" size={16} />{P.email}</div>}
+              {linkedin && <div><Icon name="linkedin" size={16} />{prettyUrl(linkedin).replace(/^linkedin\.com\//, "")}</div>}
+              {github && <div><Icon name="github" size={16} />{prettyUrl(github).replace(/^github\.com\//, "")}</div>}
+            </div>
+            <div class="toc">{toc.map(t => <span><b>{no(t)}</b>{t}</span>)}</div>
+          </div>
+          <div class="portrait">{safeSrc(P.photo) ? <img src={safeSrc(P.photo)} alt="" /> : <div><b>{initials(P.name)}</b>Profile photo</div>}</div></div>
+        )}
+
+        {pg.kind === "about" && (
+          <div class="body about">
+            <div><p class="lead">{P.lead}</p><p class="about-p">{P.about}</p>
+              <div class="roles"><span class="label">Focus areas</span><div class="chips">{P.roles.map(r => <span class="chip">{r}</span>)}</div></div></div>
+            <div class="edu"><span class="label">Education</span><div class="edu-h">{safeSrc(E.logo) && <img class="uni" src={safeSrc(E.logo)} alt="" />}<h3>{E.school}</h3></div>
+              <div class="pills">{[E.degree, E.years, E.gpa && `GPA ${E.gpa}`].filter(Boolean).map(t => <span class="pill">{t}</span>)}</div>
+              <dl>{eduRows.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}</dl></div>
+          </div>
+        )}
+
+        {pg.kind === "skills" && (
+          <div class="body skills">
+            {skills.map(s => <div class={`sk ${s.wide ? "wide" : ""}`}><h3><span class="ic"><Icon name={s.ic || "code"} /></span>{s.cat}</h3>
+              <div class="chips">{s.items.map(it => <span class="chip"><Fragment set:html={logoHTML(it.logo, it.name, 14)} />{it.name}</span>)}</div></div>)}
+          </div>
+        )}
+
+        {pg.kind === "xp" && (
+          <div class="body xgrid">
+            {pg.items!.map(x => { const ph = photosOf(x); return (
+              <div class={`xcard ${ph.length ? "has-photos" : ""}`}><div class="date">{x.date}</div><h3>{x.role}</h3><div class="org">{x.org}</div>
+                <p>{x.desc || "Details coming soon."}</p>
+                {ph.length > 0 && <div class="photos">{ph.slice(0, 3).map(p => <img src={p.src} alt="" />)}{ph.length > 3 && <span class="more">+{ph.length - 3}</span>}</div>}</div>); })}
+          </div>
+        )}
+
+        {pg.kind === "proj" && (
+          <div class="body pgrid">
+            {pg.items!.map(p => { const ph = photosOf(p), n = ps.indexOf(p) + 1, links = [safeUrl(p.demo), safeUrl(p.repo)].filter(Boolean).map(prettyUrl); return (
+              <div class={`pcard ${ph.length ? "has-img" : ""}`}>
+                {ph.length ? <img class="shot" src={ph[0].src} alt="" /> : <span class="big">{String(n).padStart(2, "0")}</span>}
+                <div class="top"><span class="pic"><Icon name={p.ic || "folder"} /></span><span class="cat">{p.c}</span><span class="yr">{p.y}</span></div>
+                <h3>{p.t}</h3><div class="sub">{p.s}</div><p>{p.d}</p>
+                {links.length > 0 && <div class="links">{links.map(l => <span><Icon name="external" size={12} />{l}</span>)}</div>}
+                <div class="tags">{p.tags.map((t: string) => <span class="tag">{t}</span>)}</div>
+              </div>); })}
+          </div>
+        )}
+
+        {pg.kind === "case" && <div class="body cases">{pg.items!.map(c => { const ph = photosOf(c); return (
+          <div class="case">
+            <div class="case-h"><span class="pic"><Icon name={c.ic || "flask"} size={22} /></span>
+              <div><div class="label">{c.ctx}{c.y && ` · ${c.y}`}</div><h3>{c.t}</h3></div>
+              <div class="tags">{c.tags.map((t: string) => <span class="tag">{t}</span>)}</div></div>
+            <div class="steps">
+              {([["Challenge", c.problem, "alert"], ["Approach", c.approach, "activity"], ["Result", c.result, "check"]] as const).map(([k, v, ic]) => (
+                <div class={`step ${k === "Result" ? "res" : ""}`}><b><Icon name={ic} size={16} />{k}</b><p>{v}</p></div>))}
+            </div>
+            {ph.length > 0 && <div class="case-ph">{ph.slice(0, 4).map(p => <img src={p.src} alt="" />)}</div>}
+          </div>); })}</div>}
+
+        {pg.kind === "pubs" && (
+          <div class="body publist">
+            {pg.items!.map(p => <div class="pub"><span class="yr">{p.y}</span><div><b>{p.t}</b><small>{[p.authors, p.venue].filter(Boolean).join(" · ")}</small>{safeUrl(p.link) && <small class="lnk">{prettyUrl(p.link)}</small>}</div>{p.kind && <span class="kind">{p.kind}</span>}</div>)}
+          </div>
+        )}
+
+        {pg.kind === "certs" && (
+          <div class="body cgrid">
+            {pg.items!.map(c => <div class="ccard"><div class="img">{safeSrc(c.img) ? <img src={safeSrc(c.img)} alt="" /> : "Certificate image"}</div><b>{c.t}</b><small>{[c.o, c.y].filter(Boolean).join(" · ")}</small>{safeUrl(c.link) && <small class="lnk">{prettyUrl(c.link)}</small>}</div>)}
+          </div>
+        )}
+
+        {pg.kind === "contact" && (
+          <div class="closing"><div class="label">{no("Contact")} — Contact</div>
+            <h2>Let’s get<br />in touch.</h2><p>Open to opportunities in {P.roles.slice(0, 3).join(", ")}.</p>
+            <div class="c-row">
+              {P.email && <div class="c-item"><Icon name="mail" size={20} /><div><small>Email</small>{P.email}</div></div>}
+              {linkedin && <div class="c-item"><Icon name="linkedin" size={20} /><div><small>LinkedIn</small>{prettyUrl(linkedin)}</div></div>}
+              {github && <div class="c-item"><Icon name="github" size={20} /><div><small>GitHub</small>{prettyUrl(github)}</div></div>}
+            </div></div>
+        )}
+
+        <div class="pfoot"><span>{P.name} — Portfolio</span><span>{pg.section}</span><span>{n + 1} / {pages.length}</span></div>
+      </section>
+    ))}
+  </div>
+
+  <script>
+    /* skala pratinjau agar muat di layar kecil + tunggu aset sebelum mencetak */
+    const fit = () => document.documentElement.style.setProperty("--z", String(Math.min(1, (innerWidth - 32) / 1280)));
+    fit(); addEventListener("resize", fit);
+    async function ready() {
+      const urls = [...new Set([...document.querySelectorAll<HTMLElement>(".logo-si")].map(e => (e.style.getPropertyValue("--src").match(/url\('(.+)'\)/) || [])[1]).filter(Boolean))];
+      const imgs = [...document.images].map(im => im.complete ? null : new Promise(r => { im.onload = im.onerror = r; }));
+      const logos = urls.map(u => new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = u!; }));
+      await Promise.race([Promise.all([document.fonts.ready, ...imgs, ...logos]), new Promise(r => setTimeout(r, 5000))]);
+    }
+    document.getElementById("printBtn")!.addEventListener("click", async () => { await ready(); print(); });
+    if (new URLSearchParams(location.search).has("print")) ready().then(() => setTimeout(print, 300));
+  </script>
+</body>
+</html>

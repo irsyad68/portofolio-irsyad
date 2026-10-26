@@ -1,0 +1,14 @@
+# File yang TIDAK ikut diupload ke Vercel saat `vercel deploy`
+# (Vercel membangun ulang proyek di servernya sendiri dari sumber di bawah)
+.env
+.env.*
+!.env.example
+node_modules
+dist
+.vercel
+.astro
+mockup
+design-system
+supabase
+*.bat
+CLAUDE.md

@@ -1,0 +1,53 @@
+---
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import { safeUrl, safeCv, prettyUrl } from "../lib/format";
+import type { Profile } from "../lib/types";
+interface Props { profile: Profile; idx: string }
+const { profile: P, idx } = Astro.props;
+const linkedin = safeUrl(P.linkedin), github = safeUrl(P.github), cv = safeCv(P.cv?.src);
+/* blok kontras burgundy — sama di kedua tema */
+const item = "flex w-full min-w-0 items-center gap-3.5 rounded-2xl border border-[#6E1A2E] bg-[#5E0B1F] px-4.5 py-4 text-left text-[#FAFAFA] transition-colors hover:border-[#9A4A5B] hover:bg-[#6A1427]";
+const ic = "grid size-10.5 flex-none place-items-center rounded-[0.6875rem] bg-[#6E1A2E]";
+const small = "block text-xs text-[#E8C4CB]";
+const big = "block truncate text-[0.9375rem] font-semibold";
+const field = "w-full rounded-xl border border-[#6E1A2E] bg-[#5E0B1F] px-4 py-3 text-[0.9375rem] text-[#FAFAFA] outline-none transition-colors placeholder:text-[#C9A3AB] hover:border-[#9A4A5B] focus:border-[#E8C4CB]";
+const lbl = "mb-1.5 block text-xs font-semibold tracking-[.04em] text-[#E8C4CB]";
+---
+<section id="contact" class="pt-9">
+  <div class="mx-auto max-w-300 px-6">
+    <div class="reveal rounded-[1.875rem] border border-[#6A1427] bg-[#4D0011] p-[clamp(2rem,5.85vw,5rem)] text-[#FAFAFA]">
+      <div class="label text-[#E8C4CB]!">{idx} — <T k="contact.label" /></div>
+      <h2 class="mt-3.5 font-head text-[clamp(2.625rem,6.75vw,6rem)] leading-[.95] font-extrabold tracking-[-.05em]"><T k="contact.h1" /><br /><T k="contact.h2" /></h2>
+      <p class="mt-4.5 max-w-130 text-[1.0625rem] text-[#E8C4CB]"><T k="contact.open" /> {P.roles.slice(0, 3).join(", ")}.</p>
+      <div class="mt-9 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-10">
+      <div class="grid gap-3">
+        {P.email && <button class={item} id="copyMail" data-email={P.email}><span class={ic}><Icon name="mail" /></span><span class="min-w-0"><small class={small}><T k="contact.copy" /></small><b class={big}>{P.email}</b></span><span class="ml-auto flex-none text-[#E8C4CB]" id="copyIc"><Icon name="copy" /></span></button>}
+        {linkedin && <a class={item} href={linkedin} target="_blank" rel="noopener" data-track="linkedin"><span class={ic}><Icon name="linkedin" /></span><span class="min-w-0"><small class={small}>LinkedIn</small><b class={big}>{prettyUrl(linkedin).replace(/^linkedin\.com\//, "")}</b></span><span class="ml-auto flex-none text-[#E8C4CB]"><Icon name="arrowUpRight" /></span></a>}
+        {github && <a class={item} href={github} target="_blank" rel="noopener" data-track="github"><span class={ic}><Icon name="github" /></span><span class="min-w-0"><small class={small}>GitHub</small><b class={big}>{prettyUrl(github).replace(/^github\.com\//, "")}</b></span><span class="ml-auto flex-none text-[#E8C4CB]"><Icon name="arrowUpRight" /></span></a>}
+        {cv && <a class={item} href={cv} {...(cv.startsWith("data:") ? { download: P.cv.name || "CV.pdf" } : { target: "_blank", rel: "noopener" })} data-track="cv"><span class={ic}><Icon name="download" /></span><span class="min-w-0"><small class={small}><T k="contact.cv" /></small><b class={big}><T k="hero.cv" /></b></span><span class="ml-auto flex-none text-[#E8C4CB]"><Icon name="arrowUpRight" /></span></a>}
+        <a class={item} href="/portfolio-pdf?print=1" target="_blank" rel="noopener" data-track="pdf"><span class={ic}><Icon name="fileDown" /></span><span class="min-w-0"><small class={small}><T k="contact.pdfSmall" /></small><b class={big}><T k="contact.pdf" /></b></span><span class="ml-auto flex-none text-[#E8C4CB]"><Icon name="arrowUpRight" /></span></a>
+      </div>
+      <!-- formulir kontak → /api/contact → panel admin "Pesan" -->
+      <form id="contactForm" class="rounded-2xl border border-[#6E1A2E] bg-[#3A000D] p-5.5 max-sm:border-0 max-sm:bg-transparent max-sm:p-0" novalidate>
+        <div class="mb-4 flex items-center gap-2.5"><span class={ic}><Icon name="send" /></span><div><b class="block text-base font-semibold"><T k="contact.send" /></b><small class={small}><T k="contact.reply" /></small></div></div>
+        <div class="grid gap-3.5 sm:grid-cols-2">
+          <label class="block"><span class={lbl}><T k="contact.name" /></span><input class={field} name="name" autocomplete="name" maxlength="100" required data-i18n-ph="contact.namePh" placeholder="Your name" /></label>
+          <label class="block"><span class={lbl}><T k="contact.email" /></span><input class={field} name="email" type="email" autocomplete="email" maxlength="200" required placeholder="you@example.com" /></label>
+        </div>
+        <label class="mt-3.5 block"><span class={lbl}><T k="contact.message" /></span><textarea class={`${field} min-h-36 resize-y`} name="message" rows="5" minlength="10" maxlength="4000" required data-i18n-ph="contact.msgPh" placeholder="Hi, I’d like to talk about…"></textarea></label>
+        <!-- jebakan bot: tidak terlihat oleh pengunjung -->
+        <label class="absolute -left-[9999px] size-px overflow-hidden" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off" /></label>
+        <p id="cfMsg" class="mt-3 hidden rounded-xl px-3.5 py-2.5 text-sm" role="status" aria-live="polite"></p>
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <small class="text-xs text-[#C9A3AB]"><T k="contact.privacy" /></small>
+          <button type="submit" id="cfBtn" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#FAFAFA] px-5.5 text-[0.9375rem] font-semibold text-[#4D0011] transition-[background-color,opacity] hover:bg-[#F6E8EB] disabled:cursor-wait disabled:opacity-60"><T k="contact.submit" /> <Icon name="send" size={16} /></button>
+        </div>
+      </form>
+      </div>
+    </div>
+    <footer class="flex flex-wrap justify-between gap-x-4 gap-y-2 pt-6.5 pb-24 text-[0.8438rem] text-fg-muted">
+      <span>© {new Date().getFullYear()} {P.name}</span><span><T k="contact.built" /></span>
+    </footer>
+  </div>
+</section>

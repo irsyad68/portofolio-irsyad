@@ -1,0 +1,63 @@
+---
+/* Technical skills sebagai roda: kartu kategori tersusun seperti silinder yang diputar dengan scroll / tombol panah,
+   kartu di tengah disorot. Indeks di kiri menandai kategori aktif. Arahkan mouse ke sebuah skill → pratinjau logo
+   muncul mengikuti kursor (pola yang sama dengan Projects). Logika di src/scripts/site.ts ("roda skill"). */
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import SectionHead from "./SectionHead.astro";
+import { logoHTML, pad2 } from "../lib/format";
+import type { SkillCategory } from "../lib/types";
+interface Props { skills: SkillCategory[] }
+const cats = Astro.props.skills.filter(s => s.items.length);   // kategori kosong disembunyikan
+const total = cats.reduce((n, s) => n + s.items.length, 0);
+---
+<section id="skills" class="border-t border-line py-27.5 max-lg:py-20">
+  <div class="mx-auto grid max-w-300 gap-10 px-6 max-lg:gap-7">
+    <SectionHead idx="02" k="skills" />
+    <div class="grid items-center gap-x-12 gap-y-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
+      <div class="reveal">
+        <ol class="grid gap-1 max-lg:hidden" aria-label="Skill categories">
+          {cats.map((s, i) => (
+            <li><button type="button" data-skill-go={i} class="sk-idx flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-fg-muted transition-colors hover:text-fg">
+              <span class="font-head text-sm font-bold tabular-nums">{pad2(i)}</span><span class="font-semibold">{s.cat}</span><span class="ml-auto text-xs tabular-nums">{s.items.length}</span>
+            </button></li>
+          ))}
+        </ol>
+        <div class="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4 max-lg:mt-0 max-lg:border-0 max-lg:pt-0">
+          <span class="text-xs text-fg-muted">{total} <T k="skills.count" /></span>
+          <div class="flex gap-1.5">
+            <button type="button" class="icon-btn size-10! rounded-full!" data-wheel="-1" data-i18n-aria="skills.prev" aria-label="Previous category"><Icon name="chevronUp" size={16} /></button>
+            <button type="button" class="icon-btn size-10! rounded-full!" data-wheel="1" data-i18n-aria="skills.next" aria-label="Next category"><Icon name="chevronDown" size={16} /></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="skillWheel" class="wheel-list reveal relative h-[30rem] overflow-y-auto px-1 py-[15rem] max-lg:h-[26rem] max-lg:py-[13rem]" tabindex="0" data-i18n-aria="skills.wheel" aria-label="Skill categories — scroll to turn the wheel">
+        {cats.map((s, i) => (
+          <article class="sk-card wheel-item mb-4 rounded-card-lg border border-line bg-card p-5.5 max-sm:p-4.5" data-i={i}>
+            <div class="mb-4 flex items-center gap-3">
+              <span class="sk-ic grid size-10 place-items-center rounded-[0.625rem] bg-muted"><Icon name={s.ic || "code"} size={20} /></span>
+              <h3 class="font-head text-lg font-bold tracking-[-.02em]">{s.cat}</h3>
+              <small class="ml-auto font-head text-sm font-bold whitespace-nowrap text-fg-muted tabular-nums">{pad2(i)} / {pad2(cats.length - 1)}</small>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {s.items.map(it => (
+                <span class="sk-chip inline-flex items-center gap-1.75 rounded-full border border-line bg-surface py-1.5 pr-3 pl-2.5 text-[0.875rem] whitespace-nowrap transition-colors hover:border-inv hover:bg-inv hover:text-on-inv" data-cat={s.cat}>
+                  <Fragment set:html={logoHTML(it.logo, it.name, 15)} /><span data-name>{it.name}</span>
+                  <template class="sk-big"><Fragment set:html={logoHTML(it.logo, it.name, 52)} /></template>
+                </span>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+  <!-- pratinjau skill (satu elemen untuk semua, posisi fixed mengikuti kursor) -->
+  <div id="skillPrev" class="follow max-md:hidden" aria-hidden="true">
+    <div class="follow-in w-48 overflow-hidden rounded-card border border-line bg-card shadow-soft">
+      <div class="grid aspect-[4/3] place-items-center bg-accent-soft text-accent" data-slot="logo"></div>
+      <div class="px-4 py-3"><b class="block font-head text-[0.9375rem] tracking-[-.01em]" data-slot="name"></b><span class="text-xs text-fg-muted" data-slot="cat"></span></div>
+    </div>
+  </div>
+</section>

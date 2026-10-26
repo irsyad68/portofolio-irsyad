@@ -1,0 +1,35 @@
+---
+/* Publikasi: daftar bergaya daftar pustaka (tahun · judul · penulis · venue · jenis), abstrak bisa dibuka.
+   Dikelola di admin → Publikasi. */
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import SectionHead from "./SectionHead.astro";
+import { safeUrl } from "../lib/format";
+import type { Publication } from "../lib/types";
+interface Props { items: Publication[]; idx: string }
+const { items, idx } = Astro.props;
+---
+<section id="publications" class="border-t border-line py-27.5 max-lg:py-20">
+  <div class="mx-auto grid max-w-300 gap-10 px-6 max-lg:gap-7">
+    <SectionHead idx={idx} k="pubs" />
+    <ol class="reveal border-t border-line">
+      {items.map(p => {
+        const link = safeUrl(p.link);
+        return (
+          <li class="grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-start gap-5 border-b border-line py-5.5 max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-3">
+            <span class="pt-0.5 font-head text-lg font-bold text-accent tabular-nums max-sm:hidden">{p.y}</span>
+            <div class="min-w-0">
+              <h3 class="font-head text-[1.125rem] leading-snug font-semibold tracking-[-.015em]">{link ? <a href={link} target="_blank" rel="noopener" class="underline-offset-4 hover:underline">{p.t}</a> : p.t}</h3>
+              <div class="mt-1 text-sm text-fg-muted">{[p.authors, p.venue].filter(Boolean).join(" · ")}<span class="sm:hidden">{p.y && ` · ${p.y}`}</span></div>
+              {p.abs && <details class="pub-abs mt-2.5 text-[0.9062rem]"><summary class="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-fg-2 select-none"><T k="pubs.abstract" /><Icon name="chevronDown" size={14} /></summary><p class="mt-2 max-w-200 text-fg-muted">{p.abs}</p></details>}
+            </div>
+            <div class="flex items-center gap-2">
+              {p.kind && <span class="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold tracking-[.04em] text-accent uppercase max-sm:hidden">{p.kind}</span>}
+              {link && <a href={link} target="_blank" rel="noopener" class="icon-btn rounded-full!" aria-label={p.t}><Icon name="arrowUpRight" size={16} /></a>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+</section>

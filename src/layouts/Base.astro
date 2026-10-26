@@ -1,0 +1,53 @@
+---
+/* Layout dasar: meta SEO, font, tema (tanpa kedip), Tailwind */
+import "../styles/global.css";
+
+interface Props { title: string; description?: string; noindex?: boolean; lang?: string; image?: string; imageAlt?: string; siteName?: string; icon?: string }
+const { title, description = "", noindex = false, lang = "en", image, imageAlt, siteName, icon } = Astro.props;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  {description && <meta name="description" content={description} />}
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
+  {canonical && <link rel="canonical" href={canonical} />}
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  {description && <meta property="og:description" content={description} />}
+  {canonical && <meta property="og:url" content={canonical} />}
+  {siteName && <meta property="og:site_name" content={siteName} />}
+  {image && <meta property="og:image" content={image} />}
+  {image && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content={title} />
+  {description && <meta name="twitter:description" content={description} />}
+  {image && <meta name="twitter:image" content={image} />}
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0F0809" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="generator" content={Astro.generator} />
+  <!-- tema, bahasa & posisi scroll di-set sebelum render (tanpa kedip, tidak lompat ke #hash lama) -->
+  <script is:inline>
+    (function () {
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+      var t = null, l = null; try { t = localStorage.getItem("theme"); l = localStorage.getItem("lang"); } catch (e) {}
+      var h = document.documentElement;
+      h.dataset.theme = t || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      h.dataset.lang = l === "id" ? "id" : "en"; h.lang = h.dataset.lang;
+    })();
+  </script>
+  {icon ? <><link rel="icon" href={icon} id="favicon" /><link rel="apple-touch-icon" href={icon} /></> : <link rel="icon" type="image/svg+xml" href="/favicon.svg" id="favicon" />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <slot name="head" />
+</head>
+<body>
+  <slot />
+</body>
+</html>

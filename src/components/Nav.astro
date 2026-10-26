@@ -1,0 +1,31 @@
+---
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import { initials, safeSrc } from "../lib/format";
+import type { Key } from "../lib/i18n";
+import type { Profile } from "../lib/types";
+interface Props { profile: Profile; links: [string, Key][] }
+const { profile: P, links } = Astro.props;
+const shortName = `${P.first} ${String(P.last).split(",")[0]}`.trim();
+---
+<!-- menu desktop mulai 1280px (xl) — jumlah link lebih banyak sejak ada Studi kasus & Publikasi -->
+<nav id="nav" aria-label="Main" class="fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-300">
+  <div class="mx-auto flex h-17 max-w-300 items-center justify-between gap-3 px-6">
+    <a href="#hero" class="flex min-h-11 min-w-0 items-center gap-2.5 font-head text-lg font-extrabold tracking-tight whitespace-nowrap max-sm:gap-2 max-sm:text-base">
+      {safeSrc(P.logo)
+        ? <img src={safeSrc(P.logo)} alt="" width="32" height="32" class="size-8 rounded-[0.5625rem] object-cover" />
+        : <span class="grid size-8 place-items-center rounded-[0.5625rem] bg-primary text-[0.8125rem] text-on-primary">{initials(P.name)}</span>}{shortName}
+    </a>
+    <div id="links" class="flex gap-0.5 max-xl:hidden max-xl:fixed max-xl:inset-x-0 max-xl:top-17 max-xl:flex-col max-xl:border-b max-xl:border-line max-xl:bg-bg max-xl:px-4 max-xl:pt-2 max-xl:pb-4 max-xl:shadow-soft">
+      {links.map(([id, k]) => (
+        <a href={`#${id}`} class="nav-link rounded-full px-3 py-2.5 text-[0.9062rem] font-medium whitespace-nowrap text-fg-muted transition-colors hover:text-fg max-xl:px-2 max-xl:py-3.5 max-xl:text-base max-xl:after:hidden"><T k={k} /></a>
+      ))}
+    </div>
+    <div class="flex flex-none items-center gap-2 max-sm:gap-1.5">
+      <a href="#contact" class="btn btn-dark magnetic max-xl:hidden"><T k="nav.talk" /> <Icon name="arrowUpRight" size={16} class="arr" /></a>
+      <button class="icon-btn lang-btn w-auto! px-2.5 max-sm:px-2 font-head text-xs font-bold tracking-[.04em]" data-lang-toggle data-i18n-aria="nav.lang" aria-label="Ganti ke Bahasa Indonesia"><span data-l="en">EN</span><span class="text-line-strong">/</span><span data-l="id">ID</span></button>
+      <button class="icon-btn theme-btn" data-theme-toggle aria-label="Toggle theme"><Icon name="sun" class="i-sun" /><Icon name="moon" class="i-moon" /></button>
+      <button class="icon-btn menu-btn xl:hidden" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="links"><Icon name="menu" size={20} class="i-menu" /><Icon name="x" size={20} class="i-x" /></button>
+    </div>
+  </div>
+</nav>

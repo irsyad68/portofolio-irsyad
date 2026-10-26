@@ -1,0 +1,27 @@
+---
+/* Halaman 404 bergaya sama dengan website (tema terang/gelap ikut pilihan pengunjung) */
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+
+export const prerender = true;
+---
+<Base title="404 — Page not found" description="The page you are looking for does not exist." noindex>
+  <main class="grid min-h-dvh place-items-center px-4 py-16">
+    <div class="w-full max-w-lg text-center">
+      <div class="font-head text-[clamp(6rem,24vw,10rem)] leading-none font-extrabold tracking-[-.06em] text-fg" aria-hidden="true">404</div>
+      <h1 class="mt-4 font-head text-[1.75rem] leading-snug font-bold tracking-[-.02em]">Page not found</h1>
+      <p class="mx-auto mt-3 max-w-sm text-fg-muted">The page you are looking for doesn't exist or has been moved. Let's get you back to the portfolio.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a class="btn btn-dark" href="/"><Icon name="arrowLeft" size={16} /> Back to home</a>
+        <a class="btn" href="/#projects">See projects</a>
+      </div>
+    </div>
+  </main>
+  <button class="icon-btn theme-btn fixed top-4 right-4" data-theme-toggle aria-label="Toggle theme"><Icon name="sun" class="i-sun" /><Icon name="moon" class="i-moon" /></button>
+  <script>
+    document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
+      const el = document.documentElement, t = el.dataset.theme === "dark" ? "light" : "dark";
+      el.dataset.theme = t; try { localStorage.setItem("theme", t); } catch {}
+    });
+  </script>
+</Base>

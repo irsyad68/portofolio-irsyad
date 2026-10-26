@@ -1,0 +1,59 @@
+---
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import SectionHead from "./SectionHead.astro";
+import { photosOf } from "../lib/format";
+import type { Experience } from "../lib/types";
+interface Props { items: Experience[] }
+const { items } = Astro.props;
+const tabs = ["Work", "Organization"] as const;
+---
+<section id="experience" class="border-t border-line py-27.5 max-lg:py-20">
+  <div class="mx-auto grid max-w-300 gap-10 px-6 max-lg:gap-7">
+    <SectionHead idx="03" k="xp" />
+    <div class="reveal min-w-0">
+      <div class="seg relative inline-flex max-w-full min-w-0 gap-0.5 overflow-x-auto rounded-full bg-muted p-1" role="tablist" data-i18n-aria="xp.type" aria-label="Experience type" data-seg="xp">
+        <span class="seg-pill" aria-hidden="true"></span>
+        {tabs.map((v, i) => <button role="tab" aria-selected={i === 0 ? "true" : "false"} data-v={v} class="relative z-1 min-h-11 rounded-full px-4 text-sm font-semibold whitespace-nowrap text-fg-muted transition-colors"><T k={`xp.${v}`} /></button>)}
+      </div>
+      {tabs.map((type, ti) => {
+        const list = items.filter(x => x.type === type);
+        return (
+          <div class="mt-6 border-t border-line" data-xp-list={type} role="tabpanel" hidden={ti !== 0}>
+            {list.length === 0 && <p class="py-10 text-center text-fg-muted"><T k="xp.empty" /></p>}
+            {list.map((x, i) => {
+              const ph = photosOf(x);
+              return (
+                <div class={`xp-item border-b border-line ${i === 0 ? "open" : ""}`}>
+                  <button class="xp-btn grid w-full items-center gap-5 px-1 py-5 text-left transition-[padding] duration-300 hover:pl-3.5 md:grid-cols-[10rem_minmax(0,1fr)_2.75rem] max-md:grid-cols-[minmax(0,1fr)_2.75rem] max-md:gap-x-3 max-md:gap-y-1 max-md:px-0 max-md:hover:pl-0" aria-expanded={i === 0 ? "true" : "false"} aria-controls={`xpb-${x.id}`}>
+                    <span class="text-[0.8438rem] text-fg-muted tabular-nums max-md:col-span-full">{x.date}</span>
+                    <span>
+                      <span class="block font-head text-lg leading-snug font-semibold tracking-[-.015em] max-md:text-[1.0312rem]"><T en={x.role} id={x.tr.role} /></span>
+                      <span class="mt-0.5 block text-[0.9062rem] text-fg-2">{x.org}{ph.length > 0 && <span class="ml-2 inline-flex items-center gap-1 align-middle text-xs font-semibold whitespace-nowrap text-fg-muted"><Icon name="camera" size={13} />{ph.length} <T k={ph.length > 1 ? "xp.photos" : "xp.photo"} /></span>}</span>
+                    </span>
+                    <span class="xp-tog grid size-9 place-items-center justify-self-end rounded-full border border-line transition-[transform,background-color,color] duration-300" aria-hidden="true"><Icon name="chevronDown" size={16} /></span>
+                  </button>
+                  <div class="xp-body" id={`xpb-${x.id}`}>
+                    <div class="overflow-hidden">
+                      <p class={`max-w-225 pb-5.5 text-[0.9375rem] md:pr-16 md:pl-46 ${x.desc ? "text-fg-muted" : "text-fg-muted italic"}`}>{x.desc ? <T en={x.desc} id={x.tr.desc} /> : <T k="xp.soon" />}</p>
+                      {ph.length > 0 && (
+                        <div class="grid max-w-225 gap-2.5 pb-6 max-md:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] md:pr-16 md:pl-46">
+                          {ph.map((p, k) => (
+                            <button class="group relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-xl border border-line bg-muted" data-gallery={`xp-${x.id}`} data-k={k} aria-label={`${k + 1} / ${ph.length}: ${p.caption || x.role}`}>
+                              <img src={p.src} alt={p.caption || x.role} loading="lazy" decoding="async" class="size-full object-cover transition-transform duration-500 group-hover:scale-106" />
+                              <span class="absolute right-2 bottom-2 grid size-8 place-items-center rounded-full border border-line bg-glass opacity-0 transition-all duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100"><Icon name="zoomIn" size={16} /></span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>

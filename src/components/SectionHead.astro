@@ -1,0 +1,12 @@
+---
+/* Judul tiap section: nomor + judul besar di kiri, keterangan di kanan, garis tebal di bawah (selebar konten).
+   `k` = awalan kunci teks di src/lib/i18n.ts (mis. "about" → about.title & about.desc). */
+import T from "./T.astro";
+import type { Key } from "../lib/i18n";
+interface Props { idx: string; k: string }
+const { idx, k } = Astro.props;
+---
+<div class="reveal flex flex-wrap items-end justify-between gap-x-10 gap-y-3 border-b-2 border-fg pb-5">
+  <h2 class="font-head text-[clamp(2.125rem,4.4vw,3.625rem)] leading-none font-extrabold tracking-[-.045em]"><span class="mr-3 inline-block -translate-y-[1.1em] font-head text-[0.9375rem] font-bold tracking-normal text-accent tabular-nums">{idx}</span><T k={`${k}.title` as Key} /></h2>
+  <p class="max-w-72 text-[0.9375rem] text-fg-muted md:text-right"><T k={`${k}.desc` as Key} /></p>
+</div>

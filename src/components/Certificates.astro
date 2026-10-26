@@ -1,0 +1,35 @@
+---
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import SectionHead from "./SectionHead.astro";
+import { safeSrc, safeUrl } from "../lib/format";
+import type { Certificate } from "../lib/types";
+interface Props { certs: Certificate[]; idx: string }
+const { certs, idx } = Astro.props;
+let k = 0;   // urutan di galeri (hanya yang bergambar)
+---
+<section id="certificates" class="border-t border-line py-27.5 max-lg:py-20">
+  <div class="mx-auto grid max-w-300 gap-10 px-6 max-lg:gap-7">
+    <SectionHead idx={idx} k="certs" />
+    <div class="reveal min-w-0">
+      {certs.length === 0 ? <p class="text-fg-muted"><T k="certs.empty" /></p> : (
+        <div class="certs flex cursor-grab gap-4 overflow-x-auto px-0.5 pt-1 pb-4" id="certs" tabindex="0" data-i18n-aria="certs.list" aria-label="Certificates, scroll horizontally">
+          {certs.map(c => {
+            const img = safeSrc(c.img), link = safeUrl(c.link);
+            return (
+              <div class="cert flex min-h-56 flex-[0_0_min(17.5rem,78%)] snap-start flex-col rounded-card border border-line bg-surface p-4.5 transition-[border-color,transform] duration-300 select-none hover:-translate-y-1 hover:border-accent">
+                {img
+                  ? <button class="mb-3.5 min-h-36 flex-1 cursor-zoom-in overflow-hidden rounded-[0.625rem] border border-line" data-gallery="certs" data-k={k++} aria-label={c.t}><img src={img} alt={c.t} loading="lazy" decoding="async" class="size-full object-cover" /></button>
+                  : <div class="mb-3.5 flex min-h-36 flex-1 items-center justify-center gap-1.5 rounded-[0.625rem] border border-dashed border-line-strong bg-card text-xs text-fg-muted"><Icon name="image" size={20} /> <T k="certs.image" /></div>}
+                <b class="text-[0.9375rem]">{c.t}</b>
+                <small class="text-[0.8125rem] text-fg-muted">{[c.o, c.y].filter(Boolean).join(" · ")}</small>
+                {link && <a class="mt-2 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-3" href={link} target="_blank" rel="noopener"><T k="certs.verify" /> <Icon name="arrowUpRight" size={14} /></a>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {certs.length > 0 && <div class="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-fg-muted"><Icon name="swap" size={14} /> <T k="certs.drag" /></div>}
+    </div>
+  </div>
+</section>

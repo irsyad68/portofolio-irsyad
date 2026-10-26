@@ -1,0 +1,55 @@
+---
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import SectionHead from "./SectionHead.astro";
+import { safeSrc } from "../lib/format";
+import type { Key } from "../lib/i18n";
+import type { Profile } from "../lib/types";
+interface Props { profile: Profile }
+const { profile: P } = Astro.props;
+const E = P.education, tr = P.tr;
+
+/* kalimat pembuka: kata yang sama dengan role diberi garis bawah animasi (berlaku untuk kedua bahasa) */
+const escHtml = (s: string) => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+const rxEsc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const mark = (text: string) => {
+  let out = escHtml(text || "");
+  [...P.roles].sort((a, b) => b.length - a.length).forEach(r => {
+    out = out.replace(new RegExp(`(?<![\\w>])(${rxEsc(escHtml(r))})(?![\\w<])`, "i"), "<em>$1</em>");
+  });
+  return out;
+};
+const leadEn = mark(P.lead), leadId = tr.lead?.trim() && tr.lead !== P.lead ? mark(tr.lead) : "";
+const rows = ([["about.faculty", E.faculty, ""], ["about.focus", E.focus, tr.focus], ["about.courses", E.courses, tr.courses], ["about.thesis", E.thesis, tr.thesis]] as [Key, string, string | undefined][]).filter(r => r[1]);
+const uniLogo = safeSrc(E.logo);
+---
+<section id="about" class="border-t border-line py-27.5 max-lg:py-20">
+  <div class="mx-auto grid max-w-300 gap-10 px-6 max-lg:gap-7">
+    <SectionHead idx="01" k="about" />
+    <div class="grid items-start gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+      <div class="reveal">
+        {leadId
+          ? <><p class="lead l-en font-head text-[clamp(1.3125rem,2.16vw,1.8125rem)] leading-[1.35] font-medium tracking-[-.02em]" set:html={leadEn} /><p class="lead l-id font-head text-[clamp(1.3125rem,2.16vw,1.8125rem)] leading-[1.35] font-medium tracking-[-.02em]" lang="id" set:html={leadId} /></>
+          : <p class="lead font-head text-[clamp(1.3125rem,2.16vw,1.8125rem)] leading-[1.35] font-medium tracking-[-.02em]" set:html={leadEn} />}
+        <p class="mt-4.5 max-w-170 text-fg-muted"><T en={P.about} id={tr.about} /></p>
+      </div>
+      <div class="reveal grid gap-5 rounded-card-lg border border-line bg-surface p-6.5 sm:grid-cols-[auto_1fr] max-sm:p-5">
+        <!-- logo universitas (upload di admin → Profil → Pendidikan); kosong = ikon toga -->
+        <div class={`grid size-14 place-items-center overflow-hidden rounded-xl border border-line bg-card ${uniLogo ? "p-1.5" : ""}`}>
+          {uniLogo ? <img src={uniLogo} alt={`Logo ${E.school}`} loading="lazy" decoding="async" class="size-full object-contain" /> : <Icon name="cap" size={24} />}
+        </div>
+        <div>
+          <h3 class="font-head text-xl tracking-tight">{E.school}</h3>
+          <div class="mt-2 mb-4 flex flex-wrap gap-2 text-xs text-fg-2">
+            {E.degree && <span class="rounded-full border border-line bg-card px-2.5 py-0.75">{E.degree}</span>}
+            {E.years && <span class="rounded-full border border-line bg-card px-2.5 py-0.75">{E.years}</span>}
+            {E.gpa && <span class="rounded-full border border-line bg-card px-2.5 py-0.75"><T k="hero.gpa" /> {E.gpa}</span>}
+          </div>
+          <dl class="grid gap-x-4 gap-y-2.5 text-[0.9062rem] sm:grid-cols-[6.25rem_1fr] max-sm:gap-y-0.5">
+            {rows.map(([k, v, vId]) => <><dt class="text-fg-muted"><T k={k} /></dt><dd class="max-sm:mb-2.5"><T en={v} id={vId} /></dd></>)}
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

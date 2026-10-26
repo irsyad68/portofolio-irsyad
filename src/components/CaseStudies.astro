@@ -1,0 +1,54 @@
+---
+/* Studi kasus: tiap kasus = kartu lebar dengan alur Tantangan → Pendekatan → Hasil (panah antar langkah),
+   foto dokumentasi opsional (lightbox, galeri "cs-<id>"). Dikelola di admin → Studi kasus. */
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import SectionHead from "./SectionHead.astro";
+import { photosOf, pad2 } from "../lib/format";
+import type { Key } from "../lib/i18n";
+import type { CaseStudy } from "../lib/types";
+interface Props { items: CaseStudy[]; idx: string }
+const { items, idx } = Astro.props;
+const steps: ["problem" | "approach" | "result", Key, string][] = [["problem", "cases.problem", "alert"], ["approach", "cases.approach", "activity"], ["result", "cases.result", "check"]];
+---
+<section id="cases" class="border-t border-line py-27.5 max-lg:py-20">
+  <div class="mx-auto grid max-w-300 gap-10 px-6 max-lg:gap-7">
+    <SectionHead idx={idx} k="cases" />
+    <div class="grid gap-6">
+      {items.map((c, i) => {
+        const ph = photosOf(c);
+        return (
+          <article class="cs-card reveal overflow-hidden rounded-card-lg border border-line bg-card">
+            <header class="flex flex-wrap items-start gap-x-5 gap-y-3 border-b border-line px-7 py-6 max-sm:px-5">
+              <span class="grid size-12 flex-none place-items-center rounded-xl bg-accent-soft text-accent"><Icon name={c.ic || "flask"} size={22} /></span>
+              <div class="min-w-0 flex-1">
+                <div class="label tabular-nums">{pad2(i)}{c.y && ` · ${c.y}`}</div>
+                <h3 class="mt-1 font-head text-[clamp(1.25rem,2.2vw,1.75rem)] leading-tight font-bold tracking-[-.025em]"><T en={c.t} id={c.tr.t} /></h3>
+                {c.ctx && <div class="mt-1 text-sm text-fg-muted"><T en={c.ctx} id={c.tr.ctx} /></div>}
+              </div>
+              {c.tags.length > 0 && <div class="flex flex-wrap gap-1.5 sm:max-w-[40%] sm:justify-end">{c.tags.map(t => <span class="rounded-full bg-muted px-2.5 py-0.75 text-xs whitespace-nowrap text-fg-2">{t}</span>)}</div>}
+            </header>
+            <ol class="grid md:grid-cols-3">
+              {steps.map(([f, k, ic], si) => (
+                <li class="relative border-line px-7 py-6 max-md:border-b max-md:last:border-b-0 max-sm:px-5 md:border-r md:last:border-r-0">
+                  <div class={`flex items-center gap-2 text-sm font-semibold ${f === "result" ? "text-accent" : "text-fg"}`}><Icon name={ic} size={16} /><T k={k} /></div>
+                  <p class="mt-2.5 text-[0.9375rem] text-fg-2"><T en={c[f]} id={c.tr[f]} /></p>
+                  {si < 2 && <span class="absolute top-1/2 -right-3.5 z-1 grid size-7 -translate-y-1/2 place-items-center rounded-full border border-line bg-card text-accent max-md:hidden" aria-hidden="true"><Icon name="chevronRight" size={14} /></span>}
+                </li>
+              ))}
+            </ol>
+            {ph.length > 0 && (
+              <div class="flex gap-2.5 overflow-x-auto border-t border-line bg-surface px-7 py-4 max-sm:px-5">
+                {ph.map((p, k) => (
+                  <button class="group h-24 flex-none cursor-zoom-in overflow-hidden rounded-lg border border-line bg-muted aspect-[4/3]" data-gallery={`cs-${c.id}`} data-k={k} aria-label={`${k + 1} / ${ph.length}: ${p.caption || c.t}`}>
+                    <img src={p.src} alt={p.caption || c.t} loading="lazy" decoding="async" class="size-full object-cover transition-transform duration-500 group-hover:scale-106" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,82 @@
+---
+/* Halaman utama portofolio.
+   Dirender di server setiap permintaan (prerender = false) agar perubahan dari admin/Supabase langsung tampil.
+   Tanpa Supabase, data diambil dari src/data/default.ts.
+   Bagian kosong (Studi kasus, Publikasi) disembunyikan beserta link menunya; nomor section menyesuaikan. */
+import Base from "../layouts/Base.astro";
+import Nav from "../components/Nav.astro";
+import Hero from "../components/Hero.astro";
+import About from "../components/About.astro";
+import Skills from "../components/Skills.astro";
+import Experience from "../components/Experience.astro";
+import Projects from "../components/Projects.astro";
+import CaseStudies from "../components/CaseStudies.astro";
+import Publications from "../components/Publications.astro";
+import Certificates from "../components/Certificates.astro";
+import Contact from "../components/Contact.astro";
+import Overlays from "../components/Overlays.astro";
+import T from "../components/T.astro";
+import { getContent } from "../lib/content";
+import { isSamplePhoto, photosOf, safeSrc, safeUrl, pad2 } from "../lib/format";
+import type { Key } from "../lib/i18n";
+
+export const prerender = false;
+
+const { data: D, source } = await getContent();
+const P = D.profile;
+
+/* cache di CDN Vercel: segar 60 dtk, boleh tampilkan versi lama sambil memperbarui hingga 1 hari.
+   Bila Supabase sedang gangguan (isi dari cadangan), cache dibuat singkat agar cepat pulih saat database kembali. */
+Astro.response.headers.set("Cache-Control", source === "supabase" ? "public, s-maxage=60, stale-while-revalidate=86400" : "public, s-maxage=15");
+
+/* urutan section → nomor (01, 02, …) & link menu */
+const hasCases = D.cases.length > 0, hasPubs = D.pubs.length > 0;
+const order = ["about", "skills", "experience", "projects", ...(hasCases ? ["cases"] : []), ...(hasPubs ? ["publications"] : []), "certificates", "contact"];
+const num = (id: string) => pad2(order.indexOf(id));
+const navKey: Record<string, Key> = { about: "nav.about", skills: "nav.skills", experience: "nav.experience", projects: "nav.projects", cases: "nav.cases", publications: "nav.pubs", certificates: "nav.certs", contact: "nav.contact" };
+const links = order.filter(id => id !== "certificates").map(id => [id, navKey[id]] as [string, Key]);
+
+/* galeri foto untuk lightbox: { "xp-<id>": [...], "pj-<id>": [...], "cs-<id>": [...], certs: [...] } */
+const galleries: Record<string, { src: string; caption: string }[]> = {};
+D.experience.forEach(x => { const ph = photosOf(x); if (ph.length) galleries[`xp-${x.id}`] = ph.map(p => ({ src: p.src, caption: p.caption || x.role })); });
+D.projects.filter(p => p.pub !== false).forEach(p => { const ph = photosOf(p); if (ph.length) galleries[`pj-${p.id}`] = ph.map(x => ({ src: x.src, caption: x.caption || p.t })); });
+D.cases.forEach(c => { const ph = photosOf(c); if (ph.length) galleries[`cs-${c.id}`] = ph.map(x => ({ src: x.src, caption: x.caption || c.t })); });
+galleries.certs = D.certs.filter(c => safeSrc(c.img)).map(c => ({ src: c.img, caption: c.t }));
+/* JSON aman di dalam <script>: cegah "</script>" menutup tag */
+const galleryJson = JSON.stringify(galleries).replace(/</g, "\\u003c");
+
+/* SEO: foto profil sebagai gambar pratinjau link (WhatsApp, LinkedIn, dll.) + data terstruktur "Person" untuk Google */
+const name = P.name.split(",")[0].trim();
+const photo = safeSrc(P.photo) && !isSamplePhoto(P.photo) ? safeSrc(P.photo) : undefined;
+const siteUrl = new URL("/", Astro.site ?? Astro.url).href;
+const person = {
+  "@context": "https://schema.org", "@type": "Person", name: P.name, url: siteUrl,
+  jobTitle: P.title || P.roles[0] || undefined, description: `${P.roles.join(", ")}.`,
+  image: photo, email: P.email ? `mailto:${P.email}` : undefined,
+  address: P.location ? { "@type": "PostalAddress", addressLocality: P.location } : undefined,
+  alumniOf: P.education?.school ? { "@type": "CollegeOrUniversity", name: P.education.school } : undefined,
+  sameAs: [safeUrl(P.linkedin), safeUrl(P.github)].filter(Boolean),
+};
+const personJson = JSON.stringify(person).replace(/</g, "\\u003c");
+---
+<Base icon={safeSrc(P.logo) || undefined} image={photo} imageAlt={`Photo of ${name}`} siteName={`${name} — Portfolio`} title={`${name} — ${[P.title, ...P.roles.slice(0, 2)].filter(Boolean).join(", ")}`}
+      description={`Portfolio of ${P.name} — ${P.roles.join(", ")}.`}>
+  <script type="application/ld+json" slot="head" set:html={personJson} />
+  <a href="#about" class="fixed -top-16 left-4 z-200 rounded-full bg-inv px-4 py-2.5 font-semibold text-on-inv transition-[top] focus:top-4"><T k="nav.skip" /></a>
+  <div id="progress" aria-hidden="true" class="fixed top-0 left-0 z-100 h-0.5 w-full origin-left scale-x-0 bg-accent"></div>
+  <Nav profile={P} links={links} />
+  <Hero data={D} />
+  <main>
+    <About profile={P} />
+    <Skills skills={D.skills} />
+    <Experience items={D.experience} />
+    <Projects projects={D.projects} />
+    {hasCases && <CaseStudies items={D.cases} idx={num("cases")} />}
+    {hasPubs && <Publications items={D.pubs} idx={num("publications")} />}
+    <Certificates certs={D.certs} idx={num("certificates")} />
+    <Contact profile={P} idx={num("contact")} />
+  </main>
+  <Overlays />
+  <script type="application/json" id="galleries" set:html={galleryJson} />
+  <script>import "../scripts/site";</script>
+</Base>

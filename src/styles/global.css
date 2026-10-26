@@ -1,0 +1,245 @@
+/* =====================================================================
+   global.css — Tailwind CSS v4 + token desain portofolio
+   Acuan: design-system/irsyad-portfolio/MASTER.md (minimalis, burgundy #4D0011)
+   - Warna = CSS variable (light/dark) → didaftarkan ke Tailwind lewat @theme inline,
+     sehingga class seperti bg-card, text-fg-muted, border-line otomatis ikut dark mode.
+   - Layout, spasi & tipografi ditulis sebagai utility class di komponen.
+   - Efek yang sulit ditulis sebagai utility (marquee, lightbox, reveal, mask logo) ada di @layer components.
+   ===================================================================== */
+@import "tailwindcss";
+
+/* dark mode dikendalikan atribut data-theme di <html> (bukan hanya preferensi sistem) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+  --bg: #FFFFFF; --surface: #FCF9F9; --card: #FFFFFF; --muted: #F7F1F2; --border: #EEE4E6; --border-strong: #DCCBCF;
+  --fg: #1A0B0E; --fg-2: #3F2A2F; --fg-muted: #6E585D;
+  --primary: #4D0011; --primary-hover: #6A0A1E; --on-primary: #FFFFFF;
+  --accent: #4D0011; --accent-soft: #F6E8EB;
+  --inv: #4D0011; --inv-2: #650A1D; --inv-line: #8C3446; --on-inv: #FFFFFF;
+  --glass: rgba(255,255,255,.84); --dot: 77,0,17;
+  --ok: #16A34A; --warn: #B45309; --danger: #DC2626;
+  --shadow-soft: 0 1px 2px rgba(77,0,17,.04), 0 .5rem 1.5rem rgba(77,0,17,.06);
+  --shadow-big: 0 2px .25rem rgba(77,0,17,.05), 0 1.5rem 3rem rgba(77,0,17,.12);
+}
+/* mode gelap: #4D0011 terlalu gelap di atas latar hitam → tombol memakai burgundy lebih terang, teks aksen memakai burgundy terang (#D4566F, kontras ≥4.5:1) */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0F0809; --surface: #140B0D; --card: #1A0F12; --muted: #261619; --border: #331F24; --border-strong: #4A2E35;
+  --fg: #F8F1F2; --fg-2: #E0D2D5; --fg-muted: #AE979C;
+  --primary: #8E1A33; --primary-hover: #A52440; --on-primary: #FFFFFF;
+  --accent: #D4566F; --accent-soft: #2E1419;
+  --inv: #7A1229; --inv-2: #8E1A33; --inv-line: #B04A5F; --on-inv: #FFFFFF;
+  --glass: rgba(15,8,9,.8); --dot: 212,86,111;
+  --ok: #22C55E; --warn: #FBBF24; --danger: #F87171;
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.3), 0 .5rem 1.5rem rgba(0,0,0,.35);
+  --shadow-big: 0 2px .25rem rgba(0,0,0,.3), 0 1.5rem 3rem rgba(0,0,0,.5);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-muted: var(--fg-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-inv: var(--inv);
+  --color-inv-2: var(--inv-2);
+  --color-inv-line: var(--inv-line);
+  --color-on-inv: var(--on-inv);
+  --color-glass: var(--glass);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-big: var(--shadow-big);
+}
+
+@theme {
+  --font-head: "Sora", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+  /* teks minimum ≈12px pada skala 90% (Tailwind bawaan 0.75rem terlalu kecil) */
+  --text-xs: 0.84rem;
+  --text-xs--line-height: 1.4;
+  --radius-card: 0.875rem;
+  --radius-card-lg: 1.375rem;
+  --ease-swiss: cubic-bezier(.2,.8,.2,1);
+}
+
+@layer base {
+  /* 90% di desktop/tablet; 100% di HP agar teks ≥16px & area sentuh ≥44px */
+  html { font-size: 90%; scroll-behavior: smooth; scroll-padding-top: 5rem; scrollbar-gutter: stable; -webkit-text-size-adjust: 100%; }
+  @media (max-width: 639px) { html { font-size: 100%; } }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; transition: background-color .26s, color .26s; }
+  *, ::before, ::after { border-color: var(--border); }
+  h1, h2, h3, h4 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: .375rem; }
+  ::selection { background: var(--primary); color: var(--on-primary); }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  [hidden] { display: none !important; }
+}
+
+@layer components {
+  /* ----- tombol ----- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.25rem; border-radius: 999px;
+    font-weight: 600; font-size: .9375rem; white-space: nowrap; border: 1px solid var(--border-strong); background: var(--card); color: var(--fg);
+    transition: transform .26s var(--ease-swiss), background-color .18s, border-color .18s, box-shadow .26s, color .26s; }
+  .btn:hover { border-color: var(--fg); box-shadow: var(--shadow-soft); }
+  .btn-dark { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+  .btn-dark:hover { background: var(--primary-hover); }
+  .btn .arr { transition: transform .26s var(--ease-swiss); }
+  .btn:hover .arr { transform: translate(2px,-2px); }
+  .icon-btn { width: 2.75rem; height: 2.75rem; border-radius: .75rem; border: 1px solid var(--border); background: var(--card); display: grid; place-items: center; transition: border-color .18s, background-color .26s; }
+  .icon-btn:hover { border-color: var(--fg); }
+  .label { font-size: var(--text-xs); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-muted); }
+
+  /* ----- tombol menu HP: ikon ☰ / ✕ ditukar lewat CSS (tidak dibuat ulang saat diklik) ----- */
+  .menu-btn svg { pointer-events: none; }
+  .menu-btn .i-x, .menu-btn[aria-expanded="true"] .i-menu { display: none; }
+  .menu-btn[aria-expanded="true"] .i-x { display: block; }
+
+  /* ----- toggle tema ----- */
+  .theme-btn { position: relative; overflow: hidden; }
+  .theme-btn svg { position: absolute; transition: transform .5s var(--ease-swiss), opacity .3s; }
+  .theme-btn .i-moon { transform: translateY(130%) rotate(-90deg); opacity: 0; }
+  [data-theme="dark"] .theme-btn .i-sun { transform: translateY(-130%) rotate(90deg); opacity: 0; }
+  [data-theme="dark"] .theme-btn .i-moon { transform: none; opacity: 1; }
+
+  /* ----- logo skill (Simple Icons via mask → warna ikut tema) ----- */
+  .logo-si { display: inline-block; flex: none; background: currentColor; -webkit-mask: var(--src) center/contain no-repeat; mask: var(--src) center/contain no-repeat; }
+  .logo-img { display: inline-block; flex: none; object-fit: contain; border-radius: 3px; }
+  .logo-txt { display: inline-grid; place-items: center; font-size: .6875rem; font-weight: 700; text-transform: uppercase; line-height: 1; }
+
+  /* ----- navbar ----- */
+  .nav-scrolled { background: var(--glass); backdrop-filter: saturate(180%) blur(.875rem); -webkit-backdrop-filter: saturate(180%) blur(.875rem); border-bottom-color: var(--border); }
+  .nav-link { position: relative; }
+  .nav-link::after { content: ""; position: absolute; left: .875rem; right: .875rem; bottom: .3125rem; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .26s var(--ease-swiss); }
+  .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
+  .nav-link.active { color: var(--fg); }
+
+  /* ----- hero ----- */
+  .pulse { width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 rgba(var(--dot),.5); animation: pulse 2s infinite; flex: none; }
+  .hero-fade::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 30% 45%, var(--bg) 20%, transparent 75%); opacity: .95; pointer-events: none; z-index: 1; }
+  .rise-line { display: block; overflow: hidden; padding-bottom: .06em; }
+  .rise-line > span { display: inline-block; transform: translateY(105%); animation: rise .9s var(--ease-swiss) forwards; }
+  .rise-line + .rise-line > span { animation-delay: .08s; color: var(--accent); }
+  .role-swap { position: relative; display: inline-block; height: 1.5em; overflow: hidden; vertical-align: bottom; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .role-swap > span { display: block; height: 1.5em; transition: transform .55s var(--ease-swiss); }
+  .portrait-img { filter: grayscale(1); transition: filter .5s, transform .6s var(--ease-swiss); }
+  .portrait:hover .portrait-img { filter: none; transform: scale(1.03); }
+  @media (hover: none) { .portrait-img { filter: none; } }
+  .scroll-cue i { width: 1px; height: 2.25rem; background: linear-gradient(var(--accent), transparent); animation: cue 1.8s var(--ease-swiss) infinite; transform-origin: top; }
+
+  /* ----- section reveal ----- */
+  .reveal { opacity: 0; transform: translateY(1.5rem); transition: opacity .7s var(--ease-swiss), transform .7s var(--ease-swiss); }
+  .reveal.in { opacity: 1; transform: none; }
+  .lead em { font-style: normal; background: linear-gradient(var(--accent), var(--accent)) 0 92%/0 2px no-repeat; transition: background-size .9s var(--ease-swiss) .3s; }
+  .reveal.in .lead em, .lead.in em { background-size: 100% 2px; }
+
+
+  /* ----- segmented tabs ----- */
+  .seg { scrollbar-width: none; }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg button[aria-selected="true"] { color: var(--fg); }
+  .seg-pill { position: absolute; z-index: 0; top: .25rem; left: .25rem; width: 0; height: calc(100% - .5rem); border-radius: 999px; background: var(--card); box-shadow: 0 1px .1875rem rgba(9,9,11,.12); transition: left .26s var(--ease-swiss), width .26s var(--ease-swiss); }
+
+  /* ----- experience accordion ----- */
+  .xp-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s var(--ease-swiss); }
+  .xp-item.open .xp-body { grid-template-rows: 1fr; }
+  .xp-item.open .xp-tog { transform: rotate(180deg); background: var(--inv); color: var(--on-inv); border-color: var(--inv); }
+
+  /* ----- kartu project ----- */
+  .p-card { animation: fadeUp .5s var(--ease-swiss) backwards; }
+  .p-thumb .big { -webkit-text-stroke: 1.5px var(--border-strong); color: transparent; }
+  .p-card:hover .p-thumb:not(.has-img), .modal-box .p-thumb:not(.has-img) { background: var(--inv); }
+  .p-card:hover .p-thumb .big, .modal-box .p-thumb .big { -webkit-text-stroke-color: var(--inv-line); }
+  .p-card:hover .p-thumb .pic, .modal-box .p-thumb .pic { background: var(--inv-2); color: var(--on-inv); border-color: var(--inv-line); }
+  .p-card:hover .p-thumb .big { transform: translateX(-10px); }
+  .p-card:hover .p-thumb .pic { transform: scale(1.08) rotate(-4deg); }
+  .p-card:hover .p-thumb img { transform: scale(1.05); }
+  .p-card:hover .p-go { background: var(--inv); color: var(--on-inv); border-color: var(--inv); transform: rotate(45deg); }
+
+  /* ----- daftar project (indeks): baris terisi burgundy dari bawah ----- */
+  .p-row::before { content: ""; position: absolute; inset: -1px -1.25rem; z-index: 0; border-radius: var(--radius-card); background: var(--inv); transform: scaleY(0); transform-origin: bottom; transition: transform .45s var(--ease-swiss); }
+  .p-row > * { position: relative; z-index: 1; }
+  .p-row .p-num, .p-row .p-muted, .p-row .p-tag, .p-row .p-badge, .p-row h3 { transition: color .3s, background-color .3s, transform .45s var(--ease-swiss); }
+
+  /* ----- roda Technical skills: kartu diputar (rotateX) oleh skrip sesuai jarak ke tengah, kartu tengah disorot ----- */
+  .wheel-list { scrollbar-width: none; scroll-snap-type: y mandatory; perspective: 900px;
+    -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
+  .wheel-list::-webkit-scrollbar { display: none; }
+  .wheel-item { scroll-snap-align: center; transform-origin: center; will-change: transform, opacity; }
+  .sk-card { transition: border-color .3s, background-color .3s, box-shadow .3s; }
+
+  /* ----- pratinjau yang mengikuti kursor (Projects & Skills): satu elemen fixed, posisi ditulis skrip
+         lewat translate3d (hanya compositor, tanpa layout ulang); muncul/hilang dianimasikan di elemen dalam. ----- */
+  .follow { position: fixed; top: 0; left: 0; z-index: 80; pointer-events: none; will-change: transform; contain: layout paint; }
+  .follow-in { will-change: transform, opacity; opacity: 0; transform: scale(.88) rotate(-3deg); transition: opacity .18s, transform .28s var(--ease-swiss); }
+  .follow.show .follow-in { opacity: 1; transform: scale(1) rotate(-3deg); }
+  .follow.warm .follow-in { opacity: .01; transform: scale(1) rotate(-3deg); transition: none; }
+
+  /* ----- modal & lightbox ----- */
+  .modal, .lb { opacity: 0; visibility: hidden; transition: opacity .26s, visibility 0s .26s; }
+  .modal.open, .lb.open { opacity: 1; visibility: visible; transition: opacity .26s; }
+  .modal-box { transform: translateY(1rem) scale(.98); transition: transform .26s var(--ease-swiss); }
+  .modal.open .modal-box { transform: none; }
+  .lb img { transform: scale(.96); transition: transform .26s var(--ease-swiss); }
+  .lb.open img { transform: none; }
+
+  /* ----- sertifikat (seret dengan mouse) ----- */
+  .certs { scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+  .certs.drag { cursor: grabbing; scroll-snap-type: none; }
+  .certs.drag .cert { pointer-events: none; }
+
+  /* ----- toast ----- */
+  .toast { transform: translate(-50%, 8.75rem); transition: transform .26s var(--ease-swiss); }
+  .toast.show { transform: translate(-50%, 0); }
+}
+
+/* dua bahasa: kedua teks dirender server, yang tidak aktif disembunyikan (lihat src/lib/i18n.ts) */
+html[data-lang="id"] .l-en, html:not([data-lang="id"]) .l-id { display: none !important; }
+.lang-btn { display: inline-flex; align-items: center; gap: .2rem; }
+.lang-btn [data-l] { color: var(--fg-muted); transition: color .2s; }
+html:not([data-lang="id"]) .lang-btn [data-l="en"], html[data-lang="id"] .lang-btn [data-l="id"] { color: var(--accent); }
+
+/* saat kursor di atas tombol magnetik / foto, transform ditulis skrip tiap frame → transisi transform dimatikan
+   (transisi yang terus diulang membuat gerakan terasa tersendat); saat kursor keluar, transisi kembali → mulus ke posisi awal */
+.magnetic:hover { transition: background-color .18s, border-color .18s, box-shadow .26s, color .26s; }
+.portrait:hover { transition: box-shadow .5s; }
+
+/* sorotan kartu roda skill — di luar @layer agar mengalahkan utility Tailwind (border-line, bg-muted, text-fg-muted) */
+.sk-card.is-center { border-color: var(--accent); background: linear-gradient(var(--accent-soft), var(--card) 70%); box-shadow: var(--shadow-big), inset 4px 0 0 var(--accent); }
+.sk-card.is-center .sk-ic { background: var(--inv); color: var(--on-inv); }
+.sk-idx.active { background: var(--accent-soft); color: var(--fg); }
+.sk-idx.active > span:first-child { color: var(--accent); }
+
+/* hover baris project ditulis di luar @layer agar mengalahkan utility Tailwind (warna teks/latar chip) */
+@media (hover: hover) {
+  .p-row:hover::before { transform: scaleY(1); }
+  .p-row:hover h3 { color: var(--on-inv); }
+  .p-row:hover .p-num { color: var(--on-inv); transform: translateX(.375rem); }
+  .p-row:hover .p-muted { color: rgba(255,255,255,.74); }
+  .p-row:hover .p-tag, .p-row:hover .p-badge { background: rgba(255,255,255,.14); color: var(--on-inv); }
+  .p-row:hover .p-go { background: var(--on-inv); color: var(--inv); border-color: transparent; transform: rotate(45deg); }
+}
+
+@keyframes pulse { 70% { box-shadow: 0 0 0 .5rem rgba(var(--dot),0); } 100% { box-shadow: 0 0 0 0 rgba(var(--dot),0); } }
+@keyframes rise { to { transform: none; } }
+@keyframes cue { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(.875rem); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; }
+}

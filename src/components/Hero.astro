@@ -1,0 +1,72 @@
+---
+/* Hero gaya "engineering sheet" — muat dalam satu layar desktop.
+   Grid 2 baris: [nama | foto] lalu [peran + tombol | lembar data GPA·Projects·Experience];
+   kedua sel baris bawah diawali garis tebal yang sama sehingga garisnya sejajar.
+   Latar kisi kristal yang bereaksi pada kursor (lihat "kisi kristal" di src/scripts/site.ts). */
+import Icon from "./Icon.astro";
+import T from "./T.astro";
+import { safeSrc, safeCv, initials } from "../lib/format";
+import type { Key } from "../lib/i18n";
+import type { PortfolioData } from "../lib/types";
+interface Props { data: PortfolioData }
+const { data: D } = Astro.props;
+const P = D.profile, E = P.education;
+const roles = P.roles.filter(Boolean).length ? P.roles.filter(Boolean) : ["Metallurgy"];
+const [gpa, gpaMax] = String(E.gpa || "").split("/").map(s => s.trim());
+const nProj = D.projects.filter(p => p.pub !== false).length;
+const cv = safeCv(P.cv?.src);
+const cvIsFile = cv.startsWith("data:");
+const photo = safeSrc(P.photo);
+const year = new Date().getFullYear();
+const specs = [
+  gpa && { k: "hero.gpa", v: gpa, note: gpaMax ? `/ ${gpaMax}` : "" },
+  { k: "hero.projects", v: String(nProj).padStart(2, "0"), note: "" },
+  { k: "hero.experience", v: String(D.experience.length).padStart(2, "0"), note: "" },
+].filter(Boolean) as { k: Key; v: string; note: string }[];
+---
+<header id="hero" class="hero-fade relative flex items-center overflow-hidden pt-27 pb-14 lg:min-h-svh max-lg:pt-27.5">
+  <canvas id="dots" aria-hidden="true" class="absolute inset-0 z-0 size-full"></canvas>
+  <div class="relative z-2 mx-auto grid w-full max-w-300 gap-x-14 px-6 lg:grid-cols-[minmax(0,1fr)_14rem]">
+    <div class="pb-7 lg:self-end max-lg:order-1">
+      <span class="inline-flex items-center gap-2.5 rounded-full border border-line bg-card py-1.75 pr-3.5 pl-3 text-xs font-medium text-fg-2">
+        {P.openToWork ? <><span class="pulse"></span><span><T en={P.status || "Open to opportunities"} id={P.tr.status} />{P.location && ` · ${P.location}`}</span></> : <><Icon name="mapPin" size={14} class="text-fg-muted" />{P.location}</>}
+      </span>
+      <div class="label mt-6 tabular-nums"><T k="hero.label" /> — {year}</div>
+      <h1 class="mt-3 font-head text-[clamp(2.75rem,6.3vw,5.75rem)] leading-[.95] font-extrabold tracking-[-.05em]">
+        <span class="rise-line"><span>{P.first}</span></span><span class="rise-line"><span>{P.last}</span></span>
+      </h1>
+    </div>
+
+    <div id="portrait" class="portrait relative mb-7 aspect-[4/5] w-full self-end overflow-hidden rounded-card-lg border border-line bg-muted transition-[transform,box-shadow] duration-500 hover:shadow-big max-lg:order-3 max-lg:mt-10 max-lg:mb-0 max-lg:max-w-52">
+      {photo
+        ? <img class="portrait-img absolute inset-0 size-full object-cover" fetchpriority="high" src={photo} alt={`Photo of ${P.name}`} />
+        : <div class="absolute inset-0 grid place-items-center text-center text-[0.8125rem] text-fg-muted"><div><div class="font-head text-[3.5rem] leading-none font-extrabold tracking-[-.05em] text-fg">{initials(P.name)}</div><span class="mt-2 block"><T k="hero.photo" /></span></div></div>}
+      {P.highlight && <div class="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-xl border border-line bg-glass px-3 py-2 text-xs backdrop-blur-sm"><span>{P.highlight}</span><Icon name="trophy" size={16} /></div>}
+    </div>
+
+    <div class="border-t-2 border-fg pt-6 max-lg:order-2">
+      <p class="text-[clamp(1.0625rem,1.6vw,1.25rem)] text-fg-2">
+        <T en={P.title || "Metallurgical Engineer"} id={P.tr.title} /> <T k="hero.focused" /> <span class="role-swap" id="roleSwap" aria-hidden="true">{roles.map(r => <span>{r}</span>)}</span><span class="sr-only">{roles.join(", ")}</span>
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3 max-sm:[&>*]:flex-auto">
+        <a href="#projects" class="btn btn-dark magnetic"><T k="hero.view" /> <Icon name="arrowUpRight" size={16} class="arr" /></a>
+        {cv
+          ? (cvIsFile
+            ? <a class="btn magnetic" href={cv} download={P.cv.name || "CV.pdf"} data-track="cv"><Icon name="download" size={16} /> <T k="hero.cv" /></a>
+            : <a class="btn magnetic" href={cv} target="_blank" rel="noopener" data-track="cv"><Icon name="download" size={16} /> <T k="hero.cv" /></a>)
+          : <button type="button" class="btn magnetic" data-cv-missing><Icon name="download" size={16} /> <T k="hero.cv" /></button>}
+        <a class="btn magnetic" href="/portfolio-pdf?print=1" target="_blank" rel="noopener" data-track="pdf"><Icon name="fileDown" size={16} /> <T k="hero.pdf" /></a>
+      </div>
+    </div>
+
+    <!-- lembar data ringkas di bawah foto -->
+    <dl class="border-t-2 border-fg max-lg:order-4 max-lg:mt-5 max-lg:grid max-lg:max-w-md max-lg:grid-cols-3 max-lg:gap-x-4 max-lg:pt-4">
+      {specs.map(s => (
+        <div class="flex items-baseline justify-between gap-3 border-b border-line py-2.5 max-lg:flex-col max-lg:gap-0.5 max-lg:border-0 max-lg:py-0">
+          <dt class="label"><T k={s.k} /></dt>
+          <dd class="font-head text-[1.375rem] leading-none font-extrabold tracking-[-.03em] text-accent tabular-nums">{s.v}{s.note && <span class="ml-1 font-body text-xs font-medium tracking-normal text-fg-muted">{s.note}</span>}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</header>
