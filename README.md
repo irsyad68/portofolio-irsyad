@@ -4,6 +4,12 @@ Website portofolio **Irsyad Ghibran, S.T.** (Teknik Metalurgi, UPN "Veteran" Yog
 
 Dibuat dari salinan project portofolio Azriel (Astro 7 · Tailwind CSS 4 · Supabase · Vercel) dengan tampilan baru: minimalis, **burgundy #4D0011**, font Sora + Plus Jakarta Sans, mode terang & gelap, **dua bahasa (EN / ID)**. Acuan desain: `design-system/irsyad-portfolio/MASTER.md`.
 
+| | |
+|---|---|
+| **Online** | 🌐 **https://portofolio-irsyad-one.vercel.app** · admin: **/admin** |
+| **Repo** | https://github.com/irsyad68/portofolio-irsyad (deploy otomatis ke Vercel setiap push ke `main`) |
+| **Database** | Supabase milik Irsyad (project `portofolio-irsyad`, Singapore) |
+
 ## Status
 
 | | |
@@ -13,7 +19,7 @@ Dibuat dari salinan project portofolio Azriel (Astro 7 · Tailwind CSS 4 · Supa
 | ✅ | Bagian **Studi kasus** & **Publikasi** (tabel Supabase + halaman admin; disembunyikan bila kosong) |
 | ✅ | Logo universitas bisa diupload (admin → Profil & Kontak → Pendidikan) |
 | ✅ | Panel admin: semua halaman + mode uji lokal |
-| ⏳ | Akun GitHub, Supabase & Vercel milik Irsyad, lalu deploy |
+| ✅ | Akun GitHub, Supabase & Vercel milik Irsyad, website sudah online |
 | ⏳ | Isi asli (foto, CV, IPK, fakultas, project, studi kasus, publikasi, pengalaman, sertifikat) — diisi Irsyad lewat `/admin` |
 | ⏳ | Versi PDF (`/portfolio-pdf`) belum memuat Studi kasus & Publikasi |
 

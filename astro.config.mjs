@@ -6,7 +6,7 @@ import vercel from '@astrojs/vercel';
 // https://astro.build/config
 export default defineConfig({
   // alamat produksi (Vercel) — dipakai untuk <link rel="canonical">. Ganti jika memakai domain sendiri.
-  site: 'https://portofolio-irsyad.vercel.app',
+  site: 'https://portofolio-irsyad-one.vercel.app',
   // Astro 7 default 'jsx' menghapus spasi di antara elemen inline (mis. "Computer Engineer␣focused on").
   compressHTML: true,
   devToolbar: { enabled: false },
